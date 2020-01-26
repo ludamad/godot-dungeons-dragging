@@ -80,6 +80,10 @@ Plane PlaneShape::get_plane() const {
 	return plane;
 }
 
+real_t PlaneShape::get_enclosing_radius() const {
+    return 0;
+}
+
 void PlaneShape::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_plane", "plane"), &PlaneShape::set_plane);

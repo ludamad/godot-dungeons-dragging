@@ -61,6 +61,7 @@ protected:
 	static void _bind_methods();
 
 	virtual void _update_shape();
+        virtual real_t get_enclosing_radius() const;
 
 public:
 	void set_faces(const PoolVector<Vector3> &p_faces);

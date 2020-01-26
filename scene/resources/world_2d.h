@@ -34,6 +34,7 @@
 #include "core/project_settings.h"
 #include "core/resource.h"
 #include "servers/physics_2d_server.h"
+#include "servers/collision_avoidance_server.h"
 
 class VisibilityNotifier2D;
 class Viewport;
@@ -44,6 +45,7 @@ class World2D : public Resource {
 	GDCLASS(World2D, Resource);
 
 	RID canvas;
+    RID collision_avoidance_space;
 	RID space;
 
 	SpatialIndexer2D *indexer;
@@ -66,6 +68,7 @@ protected:
 public:
 	RID get_canvas();
 	RID get_space();
+	RID get_collision_avoidance_space() const;
 
 	Physics2DDirectSpaceState *get_direct_space_state();
 

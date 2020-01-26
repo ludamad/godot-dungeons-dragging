@@ -42,6 +42,7 @@
 #include "scene/2d/canvas_modulate.h"
 #include "scene/2d/collision_polygon_2d.h"
 #include "scene/2d/collision_shape_2d.h"
+#include "scene/2d/collision_avoidance_controller_2d.h"
 #include "scene/2d/cpu_particles_2d.h"
 #include "scene/2d/joints_2d.h"
 #include "scene/2d/light_2d.h"
@@ -178,6 +179,7 @@
 #include "scene/3d/baked_lightmap.h"
 #include "scene/3d/bone_attachment.h"
 #include "scene/3d/camera.h"
+#include "scene/3d/collision_avoidance_controller.h"
 #include "scene/3d/collision_polygon.h"
 #include "scene/3d/collision_shape.h"
 #include "scene/3d/cpu_particles.h"
@@ -437,7 +439,8 @@ void register_scene_types() {
 	ClassDB::register_class<RigidBody>();
 	ClassDB::register_class<KinematicCollision>();
 	ClassDB::register_class<KinematicBody>();
-	ClassDB::register_class<SpringArm>();
+    ClassDB::register_class<CollisionAvoidanceController>();
+    ClassDB::register_class<SpringArm>();
 
 	ClassDB::register_class<PhysicalBone>();
 	ClassDB::register_class<SoftBody>();
@@ -561,6 +564,7 @@ void register_scene_types() {
 	ClassDB::register_class<RigidBody2D>();
 	ClassDB::register_class<KinematicBody2D>();
 	ClassDB::register_class<KinematicCollision2D>();
+	ClassDB::register_class<CollisionAvoidanceController2D>();
 	ClassDB::register_class<Area2D>();
 	ClassDB::register_class<CollisionShape2D>();
 	ClassDB::register_class<CollisionPolygon2D>();

@@ -36,6 +36,7 @@
 #include "core/os/os.h"
 #include "scene/2d/area_2d.h"
 #include "servers/physics_2d_server.h"
+#include <iostream>
 
 int TileMap::_get_quadrant_size() const {
 
@@ -851,6 +852,14 @@ void TileMap::_set_celld(const Vector2 &p_pos, const Dictionary &p_data) {
 	const Variant *args[7] = { &v_pos_x, &v_pos_y, &v_tile, &v_flip_h, &v_flip_v, &v_transpose, &v_autotile_coord };
 	Variant::CallError ce;
 	call("set_cell", args, 7, ce);
+}
+
+void TileMap::dungeons_and_dragging_hack_install_as_rvo_obstacles() {
+    std::cout << "wwww OBSTACLE ???" << std::endl;
+	if (navigation) {
+		std::cout << "ADDED OBSTACLE ???" << std::endl;
+		navigation->dungeons_and_dragging_hack_install_as_rvo_obstacles();
+	}
 }
 
 void TileMap::set_cell(int p_x, int p_y, int p_tile, bool p_flip_x, bool p_flip_y, bool p_transpose, Vector2 p_autotile_coord) {
@@ -1868,6 +1877,7 @@ void TileMap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_cell_autotile_coord", "x", "y"), &TileMap::get_cell_autotile_coord);
 
 	ClassDB::bind_method(D_METHOD("fix_invalid_tiles"), &TileMap::fix_invalid_tiles);
+	ClassDB::bind_method(D_METHOD("dungeons_and_dragging_hack_install_as_rvo_obstacles"), &TileMap::dungeons_and_dragging_hack_install_as_rvo_obstacles);
 	ClassDB::bind_method(D_METHOD("clear"), &TileMap::clear);
 
 	ClassDB::bind_method(D_METHOD("get_used_cells"), &TileMap::get_used_cells);

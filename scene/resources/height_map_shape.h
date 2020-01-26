@@ -46,6 +46,8 @@ protected:
 	static void _bind_methods();
 	virtual void _update_shape();
 
+        virtual real_t get_enclosing_radius() const;
+
 public:
 	void set_map_width(int p_new);
 	int get_map_width() const;

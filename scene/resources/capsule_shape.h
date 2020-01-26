@@ -44,6 +44,8 @@ protected:
 
 	virtual void _update_shape();
 
+        virtual real_t get_enclosing_radius() const;
+
 public:
 	void set_radius(float p_radius);
 	float get_radius() const;

@@ -48,9 +48,16 @@ class PhysicsBody : public CollisionObject {
 	uint32_t _get_layers() const;
 
 protected:
-	static void _bind_methods();
+    bool collision_avoidance_obstacle;
+    /// Can be either an Agent or a static Obstacle, depending on the physics body type.
+    RID collision_avoidance_rid;
+
+    static void _bind_methods();
 	void _notification(int p_what);
 	PhysicsBody(PhysicsServer::BodyMode p_mode);
+
+    virtual void reset_collision_avoidance();
+    virtual void update_collision_avoidance();
 
 public:
 	virtual Vector3 get_linear_velocity() const;
@@ -73,7 +80,13 @@ public:
 	void add_collision_exception_with(Node *p_node); //must be physicsbody
 	void remove_collision_exception_with(Node *p_node);
 
-	PhysicsBody();
+    RID get_collision_avoidance_rid() {
+        return collision_avoidance_rid;
+    }
+    void set_collision_avoidance_obstacle(bool p_is);
+    bool is_collision_avoidance_obstacle() const;
+
+    PhysicsBody();
 };
 
 class StaticBody : public PhysicsBody {
@@ -110,7 +123,9 @@ public:
 	~StaticBody();
 
 private:
-	void _reload_physics_characteristics();
+    virtual void reset_collision_avoidance();
+    virtual void update_collision_avoidance();
+    void _reload_physics_characteristics();
 };
 
 class RigidBody : public PhysicsBody {
@@ -270,7 +285,9 @@ public:
 	~RigidBody();
 
 private:
-	void _reload_physics_characteristics();
+    virtual void reset_collision_avoidance();
+    virtual void update_collision_avoidance();
+    void _reload_physics_characteristics();
 };
 
 VARIANT_ENUM_CAST(RigidBody::Mode);
@@ -314,6 +331,7 @@ private:
 
 	Ref<KinematicCollision> _move(const Vector3 &p_motion, bool p_infinite_inertia = true, bool p_exclude_raycast_shapes = true, bool p_test_only = false);
 	Ref<KinematicCollision> _get_slide_collision(int p_bounce);
+    virtual void reset_collision_avoidance();
 
 protected:
 	void _notification(int p_what);

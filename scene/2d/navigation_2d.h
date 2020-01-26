@@ -163,6 +163,8 @@ public:
 	int navpoly_add(const Ref<NavigationPolygon> &p_mesh, const Transform2D &p_xform, Object *p_owner = NULL);
 	void navpoly_set_transform(int p_id, const Transform2D &p_xform);
 	void navpoly_remove(int p_id);
+	void dungeons_and_dragging_hack_install_as_rvo_obstacles();
+
 
 	Vector<Vector2> get_simple_path(const Vector2 &p_start, const Vector2 &p_end, bool p_optimize = true);
 	Vector2 get_closest_point(const Vector2 &p_point);

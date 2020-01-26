@@ -32,6 +32,7 @@
 #define SHAPE_H
 
 #include "core/resource.h"
+
 class ArrayMesh;
 
 class Shape : public Resource {
@@ -62,6 +63,8 @@ public:
 
 	real_t get_margin() const;
 	void set_margin(real_t p_margin);
+        /// Returns the radius of a sphere that fully enclose this shape
+        virtual real_t get_enclosing_radius() const = 0;
 
 	Shape();
 	~Shape();

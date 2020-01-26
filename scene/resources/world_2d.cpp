@@ -340,6 +340,10 @@ void World2D::_update_notifier(VisibilityNotifier2D *p_notifier, const Rect2 &p_
 
 	indexer->_notifier_update(p_notifier, p_rect);
 }
+RID World2D::get_collision_avoidance_space() const {
+
+	return collision_avoidance_space;
+}
 void World2D::_remove_notifier(VisibilityNotifier2D *p_notifier) {
 
 	indexer->_notifier_remove(p_notifier);
@@ -385,9 +389,10 @@ Physics2DDirectSpaceState *World2D::get_direct_space_state() {
 }
 
 World2D::World2D() {
-
 	canvas = VisualServer::get_singleton()->canvas_create();
 	space = Physics2DServer::get_singleton()->space_create();
+	collision_avoidance_space = CollisionAvoidanceServer::get_singleton()->space_create();
+	CollisionAvoidanceServer::get_singleton()->space_set_active(collision_avoidance_space, true);
 
 	//set space2D to be more friendly with pixels than meters, by adjusting some constants
 	Physics2DServer::get_singleton()->space_set_active(space, true);

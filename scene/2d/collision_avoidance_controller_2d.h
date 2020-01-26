@@ -1,12 +1,12 @@
 /*************************************************************************/
-/*  ray_shape.h                                                          */
+/*  collision_avoidance_controller.h                                     */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -28,30 +28,72 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef RAY_SHAPE_H
-#define RAY_SHAPE_H
-#include "scene/resources/shape.h"
+#ifndef COLLISION_AVOIDANCE_CONTROLLER_2D_H
+#define COLLISION_AVOIDANCE_CONTROLLER_2D_H
 
-class RayShape : public Shape {
+#include "scene/main/node.h"
 
-	GDCLASS(RayShape, Shape);
-	float length;
-	bool slips_on_slope;
+class CollisionAvoidanceController2D : public Node {
+    GDCLASS(CollisionAvoidanceController2D, Node);
+
+    RID agent;
+
+    real_t neighbor_dist;
+    int max_neighbors;
+    real_t time_horizon;
+    real_t time_horizon_obs;
+    real_t radius;
+    real_t max_speed;
+
+    bool velocity_submitted;
+    Vector2 prev_safe_velocity;
+    /// The submitted target velocity
+    Vector2 target_velocity;
 
 protected:
-	static void _bind_methods();
-	virtual void _update_shape();
-        virtual real_t get_enclosing_radius() const;
+    static void _bind_methods();
+    void _notification(int p_what);
 
 public:
-	void set_length(float p_length);
-	float get_length() const;
+    CollisionAvoidanceController2D();
 
-	void set_slips_on_slope(bool p_active);
-	bool get_slips_on_slope() const;
+    RID get_rid() const {
+        return agent;
+    }
 
-	virtual Vector<Vector3> get_debug_mesh_lines();
+    void set_neighbor_dist(real_t p_dist);
+    real_t get_neighbor_dist() const {
+        return neighbor_dist;
+    }
 
-	RayShape();
+    void set_max_neighbors(int p_count);
+    int get_max_neighbors() const {
+        return max_neighbors;
+    }
+
+    void set_time_horizon(real_t p_time);
+    real_t get_time_horizon() const {
+        return time_horizon;
+    }
+    void set_time_horizon_obs(real_t p_time);
+    real_t get_time_horizon_obs() const {
+        return time_horizon_obs;
+    }
+    void set_radius(real_t p_radius);
+    real_t get_radius() const {
+        return radius;
+    }
+
+    void set_max_speed(real_t p_max_speed);
+    real_t get_max_speed() const {
+        return max_speed;
+    }
+
+    void set_velocity(Vector2 p_velocity);
+
+    void _avoidance_done(Vector2 p_new_velocity);
+
+    virtual String get_configuration_warning() const;
 };
-#endif // RAY_SHAPE_H
+
+#endif // COLLISION_AVOIDANCE_CONTROLLER_2D_H

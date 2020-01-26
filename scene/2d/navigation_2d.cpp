@@ -28,9 +28,37 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
+#include <cstddef>
 #include "navigation_2d.h"
+#include "servers/collision_avoidance_server.h"
+#include "modules/orca/rvo_collision_avoidance_server.h"
 
 #define USE_ENTRY_POINT
+
+static void dungeons_and_dragging_hack_install_as_rvo_obstacles(PoolVector<Vector2>& vertices) {
+	if (vertices.size() < 2) {
+		return;
+	}
+	// get_active_spaces_hack
+	auto* singleton = (RvoCollisionAvoidanceServer*)CollisionAvoidanceServer::get_singleton();
+	auto& spaces = singleton->get_active_spaces_hack();
+	if (spaces.empty()) {
+		return;
+	}
+	auto& space = spaces[0];
+	space->add_obstacle(vertices);
+}
+
+void Navigation2D::dungeons_and_dragging_hack_install_as_rvo_obstacles() {
+	for (Map<int, NavMesh>::Element *E = navpoly_map.front(); E; E = E->next()) {
+	    PoolVector<Vector2> vertices = E->get().navpoly->get_vertices();
+        PoolVector<Vector2> transformed;
+	    for (int i = 0; i < vertices.size(); i++) {
+            transformed.push_back(E->get().xform.xform(vertices[i]));
+	    }
+        ::dungeons_and_dragging_hack_install_as_rvo_obstacles(transformed);
+	}
+}
 
 void Navigation2D::_navpoly_link(int p_id) {
 

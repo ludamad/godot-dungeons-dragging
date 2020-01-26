@@ -35,6 +35,7 @@
 #include "scene/3d/camera.h"
 #include "scene/3d/visibility_notifier.h"
 #include "scene/scene_string_names.h"
+#include "servers/collision_avoidance_server.h"
 
 struct SpatialIndexer {
 
@@ -260,7 +261,11 @@ void World::_update(uint64_t p_frame) {
 
 RID World::get_space() const {
 
-	return space;
+    return space;
+}
+RID World::get_collision_avoidance_space() const {
+
+    return collision_avoidance_space;
 }
 RID World::get_scenario() const {
 
@@ -336,10 +341,12 @@ void World::_bind_methods() {
 World::World() {
 
 	space = PhysicsServer::get_singleton()->space_create();
+    collision_avoidance_space = CollisionAvoidanceServer::get_singleton()->space_create();
 	scenario = VisualServer::get_singleton()->scenario_create();
 
-	PhysicsServer::get_singleton()->space_set_active(space, true);
-	PhysicsServer::get_singleton()->area_set_param(space, PhysicsServer::AREA_PARAM_GRAVITY, GLOBAL_DEF("physics/3d/default_gravity", 9.8));
+    CollisionAvoidanceServer::get_singleton()->space_set_active(collision_avoidance_space, true);
+    PhysicsServer::get_singleton()->space_set_active(space, true);
+    PhysicsServer::get_singleton()->area_set_param(space, PhysicsServer::AREA_PARAM_GRAVITY, GLOBAL_DEF("physics/3d/default_gravity", 9.8));
 	PhysicsServer::get_singleton()->area_set_param(space, PhysicsServer::AREA_PARAM_GRAVITY_VECTOR, GLOBAL_DEF("physics/3d/default_gravity_vector", Vector3(0, -1, 0)));
 	PhysicsServer::get_singleton()->area_set_param(space, PhysicsServer::AREA_PARAM_LINEAR_DAMP, GLOBAL_DEF("physics/3d/default_linear_damp", 0.1));
 	ProjectSettings::get_singleton()->set_custom_property_info("physics/3d/default_linear_damp", PropertyInfo(Variant::REAL, "physics/3d/default_linear_damp", PROPERTY_HINT_RANGE, "-1,100,0.001,or_greater"));
@@ -356,7 +363,8 @@ World::World() {
 World::~World() {
 
 	PhysicsServer::get_singleton()->free(space);
-	VisualServer::get_singleton()->free(scenario);
+    CollisionAvoidanceServer::get_singleton()->free(collision_avoidance_space);
+    VisualServer::get_singleton()->free(scenario);
 
 #ifndef _3D_DISABLED
 	memdelete(indexer);

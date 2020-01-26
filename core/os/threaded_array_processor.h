@@ -67,6 +67,12 @@ void process_array_thread(void *ud) {
 template <class C, class M, class U>
 void thread_process_array(uint32_t p_elements, C *p_instance, M p_method, U p_userdata) {
 
+        // <dungeons>
+        // Ignore this if p_elements == 0
+        if (p_elements == 0) {
+            return; 
+        }
+        // </dungeons>
 	ThreadArrayProcessData<C, U> data;
 	data.method = p_method;
 	data.instance = p_instance;

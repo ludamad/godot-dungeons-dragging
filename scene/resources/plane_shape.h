@@ -42,6 +42,8 @@ protected:
 	static void _bind_methods();
 	virtual void _update_shape();
 
+        virtual real_t get_enclosing_radius() const;
+
 public:
 	void set_plane(Plane p_plane);
 	Plane get_plane() const;
