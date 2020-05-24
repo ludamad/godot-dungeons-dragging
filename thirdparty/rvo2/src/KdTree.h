@@ -147,6 +147,9 @@ namespace RVO {
 		 */
 		void computeAgentNeighbors(Agent *agent, float &rangeSq) const;
 
+		void _nearestAgentMatchingFlag(Vector2 xy, int user_flags, int node, Agent** nearestAgent, float* nearestDistSqr) const;
+		Agent* nearestAgentMatchingFlag(Vector2 xy, int user_flags) const;
+
 		/**
 		 * \brief      Computes the obstacle neighbors of the specified agent.
 		 * \param      agent           A pointer to the agent for which obstacle

@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  collision_avoidance_controller.h                                     */
+/*  rvo_space.h                                                          */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,79 +28,65 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef COLLISION_AVOIDANCE_CONTROLLER_2D_H
-#define COLLISION_AVOIDANCE_CONTROLLER_2D_H
+#ifndef RVO_SPACE_H
+#define RVO_SPACE_H
 
-#include "scene/main/node.h"
+#include "rvo_rid.h"
 
-class CollisionAvoidanceController2D : public Node {
-    GDCLASS(CollisionAvoidanceController2D, Node);
+#include "core/math/math_defs.h"
+#include <thirdparty/rvo2/src/KdTree.h>
+#include <thirdparty/rvo2/src/Obstacle.h>
+#include <core/math/vector2.h>
+#include "core/pool_vector.h"
 
-    RID agent;
+class RvoAgent;
 
-    real_t neighbor_dist;
-    int max_neighbors;
-    real_t time_horizon;
-    real_t time_horizon_obs;
-    real_t radius;
-    real_t max_speed;
-    int user_flags;
+class RvoSpace : public RvoRid {
 
-    bool velocity_submitted;
-    Vector2 prev_safe_velocity;
-    /// The submitted target velocity
-    Vector2 target_velocity;
+    /// Rvo world
+    RVO::KdTree rvo;
 
-protected:
-    static void _bind_methods();
-    void _notification(int p_what);
+    /// Is the obstacles array modified?
+    bool obstacles_dirty;
+    /// Obstacles
+    std::vector<RVO::Obstacle *> obstacles;
+
+    /// Is agent array modified?
+    bool agents_dirty;
+
+    /// All the Agents (even the controlled one)
+    std::vector<RvoAgent *> agents;
+
+    /// Controlled agents
+    std::vector<RvoAgent *> controlled_agents;
+
+    /// Physics delta time
+    real_t deltatime;
 
 public:
-    CollisionAvoidanceController2D();
+    RvoSpace();
 
-    RID get_rid() const {
-        return agent;
+    bool has_obstacle(RVO::Obstacle *obstacle) const;
+    void add_obstacle(PoolVector<Vector2>& vertices);
+    void remove_obstacle(RVO::Obstacle *obstacle);
+
+    bool has_agent(RvoAgent *agent) const;
+    void add_agent(RvoAgent *agent);
+    void remove_agent(RvoAgent *agent);
+    std::vector<RvoAgent *> &get_agents() {
+        return agents;
     }
+    Vector2 find_nearest_matching_flag(Vector2 xy, int flags);
 
-    void set_neighbor_dist(real_t p_dist);
-    real_t get_neighbor_dist() const {
-        return neighbor_dist;
-    }
+    void set_agent_as_controlled(RvoAgent *agent);
+    void remove_agent_as_controlled(RvoAgent *agent);
 
-    void set_max_neighbors(int p_count);
-    int get_max_neighbors() const {
-        return max_neighbors;
-    }
+    void sync();
+    void step(real_t p_deltatime);
+    void dispatch_callbacks();
 
-    void set_time_horizon(real_t p_time);
-    real_t get_time_horizon() const {
-        return time_horizon;
-    }
-    void set_time_horizon_obs(real_t p_time);
-    real_t get_time_horizon_obs() const {
-        return time_horizon_obs;
-    }
-    void set_radius(real_t p_radius);
-    real_t get_radius() const {
-        return radius;
-    }
-
-    void set_max_speed(real_t p_max_speed);
-    real_t get_max_speed() const {
-        return max_speed;
-    }
-
-    void set_velocity(Vector2 p_velocity);
-    void set_user_flags(int user_flags);
-    int get_user_flags() const {
-        return user_flags;
-    }
-
-    void _avoidance_done(Vector2 p_new_velocity);
-
-    Vector2 get_nearest_neighbor(int flags);
-
-    virtual String get_configuration_warning() const;
+private:
+    void compute_single_step(uint32_t index, RvoAgent **agent);
 };
 
-#endif // COLLISION_AVOIDANCE_CONTROLLER_2D_H
+#endif // RVO_SPACE_H

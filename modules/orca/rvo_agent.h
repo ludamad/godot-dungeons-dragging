@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  collision_avoidance_controller.h                                     */
+/*  rvo_agent.h                                                          */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,79 +28,40 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef COLLISION_AVOIDANCE_CONTROLLER_2D_H
-#define COLLISION_AVOIDANCE_CONTROLLER_2D_H
+#ifndef RVO_AGENT_H
+#define RVO_AGENT_H
 
-#include "scene/main/node.h"
+#include "core/object.h"
+#include "rvo_rid.h"
+#include "thirdparty/rvo2/src/Agent.h"
 
-class CollisionAvoidanceController2D : public Node {
-    GDCLASS(CollisionAvoidanceController2D, Node);
+class RvoSpace;
 
-    RID agent;
+class RvoAgent : public RvoRid {
+    struct AvoidanceComputedCallback {
+        ObjectID id;
+        StringName method;
+        Variant udata;
+        Variant new_velocity;
+    };
 
-    real_t neighbor_dist;
-    int max_neighbors;
-    real_t time_horizon;
-    real_t time_horizon_obs;
-    real_t radius;
-    real_t max_speed;
-    int user_flags;
-
-    bool velocity_submitted;
-    Vector2 prev_safe_velocity;
-    /// The submitted target velocity
-    Vector2 target_velocity;
-
-protected:
-    static void _bind_methods();
-    void _notification(int p_what);
+    RvoSpace *space;
+    RVO::Agent agent;
+    AvoidanceComputedCallback callback;
 
 public:
-    CollisionAvoidanceController2D();
+    RvoAgent(RvoSpace *p_space);
 
-    RID get_rid() const {
-        return agent;
+    RvoSpace *get_space() {
+        return space;
     }
 
-    void set_neighbor_dist(real_t p_dist);
-    real_t get_neighbor_dist() const {
-        return neighbor_dist;
+    RVO::Agent *get_agent() {
+        return &agent;
     }
 
-    void set_max_neighbors(int p_count);
-    int get_max_neighbors() const {
-        return max_neighbors;
-    }
-
-    void set_time_horizon(real_t p_time);
-    real_t get_time_horizon() const {
-        return time_horizon;
-    }
-    void set_time_horizon_obs(real_t p_time);
-    real_t get_time_horizon_obs() const {
-        return time_horizon_obs;
-    }
-    void set_radius(real_t p_radius);
-    real_t get_radius() const {
-        return radius;
-    }
-
-    void set_max_speed(real_t p_max_speed);
-    real_t get_max_speed() const {
-        return max_speed;
-    }
-
-    void set_velocity(Vector2 p_velocity);
-    void set_user_flags(int user_flags);
-    int get_user_flags() const {
-        return user_flags;
-    }
-
-    void _avoidance_done(Vector2 p_new_velocity);
-
-    Vector2 get_nearest_neighbor(int flags);
-
-    virtual String get_configuration_warning() const;
+    void set_callback(ObjectID p_id, const StringName &p_method, const Variant &p_udata = Variant());
+    void dispatch_callback();
 };
 
-#endif // COLLISION_AVOIDANCE_CONTROLLER_2D_H
+#endif // RVO_AGENT_H

@@ -205,7 +205,6 @@ namespace RVO {
 					newObstacle->isConvex_ = true;
 					newObstacle->unitDir_ = obstacleJ1->unitDir_;
 
-					
 					newObstacle->id_ = obstacleJ1->id_;
 
 					root.push_back(newObstacle);
@@ -234,6 +233,68 @@ namespace RVO {
 	void KdTree::computeAgentNeighbors(Agent *agent, float &rangeSq) const
 	{
 		queryAgentTreeRecursive(agent, rangeSq, 0);
+	}
+
+	Agent* KdTree::nearestAgentMatchingFlag(Vector2 xy, int user_flags) const
+	{
+		Agent* nearestAgent = NULL;
+		float nearestDistSqr = std::numeric_limits<float>::max();
+		_nearestAgentMatchingFlag(xy, user_flags, 0, &nearestAgent, &nearestDistSqr);
+		return nearestAgent;
+	}
+
+	void KdTree::_nearestAgentMatchingFlag(Vector2 xy, int user_flags, int node, Agent** nearestAgent, float* nearestDistSqr) const
+	{
+        printf("_nearestAgentMatchingFlag(Vector2 xy=(%.2f, %.2f), int user_flags=%d, int node=%d, float nearestDistSqr=%.2f)\n", xy.x(), xy.y(), user_flags, node, *nearestDistSqr);
+        printf("agentTree_.size()=%d\n", (int)agentTree_.size());
+	    if (node < 0 || node >= agentTree_.size()) {
+	        return;
+	    }
+		if (agentTree_[node].end - agentTree_[node].begin <= MAX_LEAF_SIZE) {
+			// Base case of recursion:
+			// This subdivision is considered entirely
+			for (size_t i = agentTree_[node].begin; i < agentTree_[node].end; ++i) {
+				printf("agents_[i]->userFlags=%d, user_flags=%d\n", agents_[i]->userFlags, user_flags);
+				if ((agents_[i]->userFlags & user_flags) == 0) {
+					continue; // skip this node
+				}
+				// consider this node
+                float distSqr = sqr(agents_[i]->position_.x() - xy.x()) + sqr(agents_[i]->position_.y() - xy.y());
+                if (distSqr < *nearestDistSqr) {
+                    *nearestAgent = agents_[i];
+                    *nearestDistSqr = distSqr;
+                }
+			}
+		} else {
+			const float distSqLeft =
+			        sqr(std::max(0.0f, agentTree_[agentTree_[node].left].minX - xy.x()))
+                    + sqr(std::max(0.0f, xy.x() - agentTree_[agentTree_[node].left].maxX))
+                    + sqr(std::max(0.0f, agentTree_[agentTree_[node].left].minY - xy.y()))
+                    + sqr(std::max(0.0f, xy.y() - agentTree_[agentTree_[node].left].maxY));
+			const float distSqRight = sqr(std::max(0.0f, agentTree_[agentTree_[node].right].minX - xy.x()))
+			        + sqr(std::max(0.0f, xy.x() - agentTree_[agentTree_[node].right].maxX))
+			        + sqr(std::max(0.0f, agentTree_[agentTree_[node].right].minY - xy.y()))
+			        + sqr(std::max(0.0f, xy.y() - agentTree_[agentTree_[node].right].maxY));
+
+			if (distSqLeft < distSqRight) {
+				if (distSqLeft < *nearestDistSqr) {
+					_nearestAgentMatchingFlag(xy, user_flags, agentTree_[node].left, nearestAgent, nearestDistSqr);
+
+					if (distSqRight < *nearestDistSqr) {
+						_nearestAgentMatchingFlag(xy, user_flags, agentTree_[node].right, nearestAgent, nearestDistSqr);
+					}
+				}
+			} else {
+				if (distSqRight < *nearestDistSqr) {
+					_nearestAgentMatchingFlag(xy, user_flags, agentTree_[node].right, nearestAgent, nearestDistSqr);
+
+					if (distSqLeft < *nearestDistSqr) {
+						_nearestAgentMatchingFlag(xy, user_flags, agentTree_[node].left, nearestAgent, nearestDistSqr);
+					}
+				}
+			}
+
+		}
 	}
 
 	void KdTree::computeObstacleNeighbors(Agent *agent, float rangeSq) const

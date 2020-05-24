@@ -409,5 +409,6 @@ World2D::~World2D() {
 
 	VisualServer::get_singleton()->free(canvas);
 	Physics2DServer::get_singleton()->free(space);
+	CollisionAvoidanceServer::get_singleton()->free(collision_avoidance_space);
 	memdelete(indexer);
 }

@@ -34,6 +34,7 @@
 #include "core/object.h"
 #include "core/rid.h"
 
+class RvoSpace;
 class CollisionAvoidanceServer : public Object {
     GDCLASS(CollisionAvoidanceServer, Object);
 
@@ -49,6 +50,7 @@ public:
     virtual void space_set_active(RID p_space, bool p_active) = 0;
     virtual bool space_is_active(RID p_space) const = 0;
 
+    virtual RvoSpace* get_space(RID p_space) const = 0;
     /**
      * Creates and add the agent to the space.
      */
@@ -111,6 +113,7 @@ public:
      */
     virtual void agent_set_max_speed(RID p_agent, real_t p_max_speed) = 0;
 
+    virtual void agent_set_user_flags(RID p_agent, int userFlags) = 0;
     /**
      * Current velocity of the agent
      */

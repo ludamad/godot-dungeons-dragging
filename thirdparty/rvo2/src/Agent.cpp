@@ -37,7 +37,7 @@
 
 namespace RVO {
 
-	Agent::Agent() : maxNeighbors_(0), maxSpeed_(0.0f), neighborDist_(0.0f), radius_(0.0f), timeHorizon_(0.0f), timeHorizonObst_(0.0f), id_(0) { }
+	Agent::Agent() : userFlags(0), maxNeighbors_(0), maxSpeed_(0.0f), neighborDist_(0.0f), radius_(0.0f), timeHorizon_(0.0f), timeHorizonObst_(0.0f), id_(0) { }
 
 	void Agent::computeNeighbors(KdTree *kdTree_)
 	{

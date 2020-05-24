@@ -396,6 +396,7 @@ public:
 	static void cleanup();
 };
 
+
 #ifdef DEBUG_METHODS_ENABLED
 
 #define BIND_CONSTANT(m_constant) \

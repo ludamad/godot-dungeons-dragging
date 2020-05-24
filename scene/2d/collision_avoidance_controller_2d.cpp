@@ -30,6 +30,7 @@
 
 #include "collision_avoidance_controller_2d.h"
 
+#include "modules/orca/rvo_collision_avoidance_server.h"
 #include "scene/2d/physics_body_2d.h"
 #include "servers/collision_avoidance_server.h"
 #include <iostream>
@@ -51,10 +52,12 @@ void CollisionAvoidanceController2D::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_radius", "radius"), &CollisionAvoidanceController2D::set_radius);
     ClassDB::bind_method(D_METHOD("get_radius"), &CollisionAvoidanceController2D::get_radius);
 
+    ClassDB::bind_method(D_METHOD("set_user_flags", "user_flags"), &CollisionAvoidanceController2D::set_user_flags);
     ClassDB::bind_method(D_METHOD("set_max_speed", "max_speed"), &CollisionAvoidanceController2D::set_max_speed);
     ClassDB::bind_method(D_METHOD("get_max_speed"), &CollisionAvoidanceController2D::get_max_speed);
 
     ClassDB::bind_method(D_METHOD("set_velocity", "velocity"), &CollisionAvoidanceController2D::set_velocity);
+    ClassDB::bind_method(D_METHOD("get_nearest_neighbor"), &CollisionAvoidanceController2D::get_nearest_neighbor);
 
     ClassDB::bind_method(D_METHOD("_avoidance_done", "new_velocity"), &CollisionAvoidanceController2D::_avoidance_done);
 
@@ -64,6 +67,7 @@ void CollisionAvoidanceController2D::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "time_horizon_obs", PROPERTY_HINT_RANGE, "0.1,10000,0.01"), "set_time_horizon_obs", "get_time_horizon_obs");
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "radius", PROPERTY_HINT_RANGE, "0.1,10000,0.01"), "set_radius", "get_radius");
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "max_speed", PROPERTY_HINT_RANGE, "0.1,10000,0.01"), "set_max_speed", "get_max_speed");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "user_flags", PROPERTY_HINT_RANGE, "1,10000,1"), "set_user_flags", "get_user_flags");
 
     ADD_SIGNAL(MethodInfo("velocity_computed", PropertyInfo(Variant::VECTOR2, "safe_velocity")));
 }
@@ -82,6 +86,7 @@ void CollisionAvoidanceController2D::_notification(int p_what) {
                 CollisionAvoidanceServer::get_singleton()->agent_set_time_horizon_obs(agent, time_horizon_obs);
                 CollisionAvoidanceServer::get_singleton()->agent_set_radius(agent, radius);
                 CollisionAvoidanceServer::get_singleton()->agent_set_max_speed(agent, max_speed);
+                CollisionAvoidanceServer::get_singleton()->agent_set_user_flags(agent, user_flags);
                 CollisionAvoidanceServer::get_singleton()->agent_set_callback(agent, this, "_avoidance_done");
                 set_physics_process_internal(true);
             }
@@ -111,6 +116,7 @@ CollisionAvoidanceController2D::CollisionAvoidanceController2D() :
         time_horizon_obs(20.0),
         radius(1.0),
         max_speed(20.0),
+        user_flags(0.0),
         velocity_submitted(false) {
 }
 
@@ -156,6 +162,13 @@ void CollisionAvoidanceController2D::set_max_speed(real_t p_max_speed) {
     }
 }
 
+void CollisionAvoidanceController2D::set_user_flags(int p_user_flags) {
+    user_flags = p_user_flags;
+    if (agent.is_valid()) {
+        CollisionAvoidanceServer::get_singleton()->agent_set_user_flags(agent, user_flags);
+    }
+}
+
 void CollisionAvoidanceController2D::set_velocity(Vector2 p_velocity) {
     if (agent.is_valid()) {
         target_velocity = p_velocity;
@@ -177,6 +190,17 @@ void CollisionAvoidanceController2D::_avoidance_done(Vector2 p_new_velocity) {
     velocity_submitted = false;
 
     emit_signal("velocity_computed", p_new_velocity);
+}
+
+Vector2 CollisionAvoidanceController2D::get_nearest_neighbor(int flags) {
+    PhysicsBody2D *parent = Object::cast_to<PhysicsBody2D>(get_parent());
+    if (!parent) {
+        return Vector2();
+    }
+    auto space_id = parent->get_world_2d()->get_collision_avoidance_space();
+    RvoSpace *space = CollisionAvoidanceServer::get_singleton()->get_space(space_id);
+    const Vector2 o = parent->get_global_transform().get_origin();
+    return space->find_nearest_matching_flag(o, flags);
 }
 
 String CollisionAvoidanceController2D::get_configuration_warning() const {

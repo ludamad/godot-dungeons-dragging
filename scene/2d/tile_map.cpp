@@ -855,9 +855,7 @@ void TileMap::_set_celld(const Vector2 &p_pos, const Dictionary &p_data) {
 }
 
 void TileMap::dungeons_and_dragging_hack_install_as_rvo_obstacles() {
-    std::cout << "wwww OBSTACLE ???" << std::endl;
 	if (navigation) {
-		std::cout << "ADDED OBSTACLE ???" << std::endl;
 		navigation->dungeons_and_dragging_hack_install_as_rvo_obstacles();
 	}
 }

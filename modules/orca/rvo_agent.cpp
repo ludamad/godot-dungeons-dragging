@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  collision_avoidance_controller.h                                     */
+/*  rvo_agent.cpp                                                        */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,79 +28,41 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef COLLISION_AVOIDANCE_CONTROLLER_2D_H
-#define COLLISION_AVOIDANCE_CONTROLLER_2D_H
+#include "rvo_agent.h"
 
-#include "scene/main/node.h"
+#include "rvo_space.h"
 
-class CollisionAvoidanceController2D : public Node {
-    GDCLASS(CollisionAvoidanceController2D, Node);
+RvoAgent::RvoAgent(RvoSpace *p_space) :
+        space(p_space) {
+    callback.id = ObjectID(0);
+}
 
-    RID agent;
+void RvoAgent::set_callback(ObjectID p_id, const StringName &p_method, const Variant &p_udata) {
+    callback.id = p_id;
+    callback.method = p_method;
+    callback.udata = p_udata;
 
-    real_t neighbor_dist;
-    int max_neighbors;
-    real_t time_horizon;
-    real_t time_horizon_obs;
-    real_t radius;
-    real_t max_speed;
-    int user_flags;
+    if (p_id == 0) {
+        space->remove_agent_as_controlled(this);
+    } else {
+        space->set_agent_as_controlled(this);
+    }
+}
 
-    bool velocity_submitted;
-    Vector2 prev_safe_velocity;
-    /// The submitted target velocity
-    Vector2 target_velocity;
-
-protected:
-    static void _bind_methods();
-    void _notification(int p_what);
-
-public:
-    CollisionAvoidanceController2D();
-
-    RID get_rid() const {
-        return agent;
+void RvoAgent::dispatch_callback() {
+    if (callback.id == 0) {
+        return;
+    }
+    Object *obj = ObjectDB::get_instance(callback.id);
+    if (obj == NULL) {
+        callback.id = ObjectID(0);
     }
 
-    void set_neighbor_dist(real_t p_dist);
-    real_t get_neighbor_dist() const {
-        return neighbor_dist;
-    }
+    Variant::CallError responseCallError;
 
-    void set_max_neighbors(int p_count);
-    int get_max_neighbors() const {
-        return max_neighbors;
-    }
+    callback.new_velocity = Vector2(agent.newVelocity_.x(), agent.newVelocity_.y());
 
-    void set_time_horizon(real_t p_time);
-    real_t get_time_horizon() const {
-        return time_horizon;
-    }
-    void set_time_horizon_obs(real_t p_time);
-    real_t get_time_horizon_obs() const {
-        return time_horizon_obs;
-    }
-    void set_radius(real_t p_radius);
-    real_t get_radius() const {
-        return radius;
-    }
-
-    void set_max_speed(real_t p_max_speed);
-    real_t get_max_speed() const {
-        return max_speed;
-    }
-
-    void set_velocity(Vector2 p_velocity);
-    void set_user_flags(int user_flags);
-    int get_user_flags() const {
-        return user_flags;
-    }
-
-    void _avoidance_done(Vector2 p_new_velocity);
-
-    Vector2 get_nearest_neighbor(int flags);
-
-    virtual String get_configuration_warning() const;
-};
-
-#endif // COLLISION_AVOIDANCE_CONTROLLER_2D_H
+    const Variant *vp[2] = { &callback.new_velocity, &callback.udata };
+    int argc = (callback.udata.get_type() == Variant::NIL) ? 1 : 2;
+    obj->call(callback.method, vp, argc, responseCallError);
+}

@@ -89,6 +89,7 @@ namespace RVO {
 		 */
 		void update();
 
+                size_t userFlags; // DUNGEONS & DRAGGING: flags set by user
 		std::vector<std::pair<float, const Agent *> > agentNeighbors_;
 		size_t maxNeighbors_;
 		float maxSpeed_;
