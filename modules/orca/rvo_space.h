@@ -76,7 +76,7 @@ public:
     std::vector<RvoAgent *> &get_agents() {
         return agents;
     }
-    Vector2 find_nearest_matching_flag(Vector2 xy, int flags);
+    RVO::Agent* find_nearest_matching_flag(Vector2 xy, int flags, int range);
 
     void set_agent_as_controlled(RvoAgent *agent);
     void remove_agent_as_controlled(RvoAgent *agent);

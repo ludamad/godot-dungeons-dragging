@@ -51,7 +51,6 @@ void RvoSpace::add_obstacle(PoolVector<Vector2>& vertices) {
     for (size_t i = 0; i < vertices.size(); ++i) {
         RVO::Obstacle *obstacle = new RVO::Obstacle();
         obstacle->point_ = to_rvo(vertices[i]);
-        std::cout << "POINT " << i << " " << obstacle->point_.x() << ", " << obstacle->point_.y() << std::endl;
 
         if (i != 0) {
             obstacle->prevObstacle_ = obstacles.back();
@@ -69,7 +68,7 @@ void RvoSpace::add_obstacle(PoolVector<Vector2>& vertices) {
             obstacle->isConvex_ = true;
         }
         else {
-            obstacle->isConvex_ = true; // (RVO::leftOf(to_rvo(vertices[(i == 0 ? vertices.size() - 1 : i - 1)]), to_rvo(vertices[i]), to_rvo(vertices[(i == vertices.size() - 1 ? 0 : i + 1)])) >= 0.0f);
+            obstacle->isConvex_ = (RVO::leftOf(to_rvo(vertices[(i == 0 ? vertices.size() - 1 : i - 1)]), to_rvo(vertices[i]), to_rvo(vertices[(i == vertices.size() - 1 ? 0 : i + 1)])) >= 0.0f);
         }
 
         obstacle->id_ = obstacles.size();
@@ -77,7 +76,11 @@ void RvoSpace::add_obstacle(PoolVector<Vector2>& vertices) {
         obstacles.push_back(obstacle);
     }
 
+
     std::cout << "ADDED OBSTACLE " << obstacleNo << std::endl;
+    for (size_t i = obstacleNo; i < obstacles.size(); ++i) {
+        std::cout << "ADDED OBSTACLE (" << i << ") AT " << obstacles[i]->point_ << std::endl;
+    }
     obstacles_dirty = true;
 }
 
@@ -165,11 +168,6 @@ void RvoSpace::dispatch_callbacks() {
     }
 }
 
-Vector2 RvoSpace::find_nearest_matching_flag(Vector2 xy, int flags) {
-    auto agent = rvo.nearestAgentMatchingFlag(to_rvo(xy), flags);
-    if (!agent) {
-        return Vector2();
-    }
-    RVO::Vector2 vec = agent->position_;
-    return Vector2(vec.x(), vec.y());
+RVO::Agent* RvoSpace::find_nearest_matching_flag(Vector2 xy, int flags, int range) {
+    return rvo.nearestAgentMatchingFlag(to_rvo(xy), flags, range);
 }

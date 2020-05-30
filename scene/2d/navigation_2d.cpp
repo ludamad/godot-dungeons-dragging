@@ -19,7 +19,7 @@
 /* The above copyright notice and this permission notice shall be        */
 /* included in all copies or substantial portions of the Software.       */
 /*                                                                       */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       */
+/* THE SOFTWARE IS PROVI[DED "AS IS", WITHOUT WARRANTY OF ANY KIND,       */
 /* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF    */
 /* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.*/
 /* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY  */
@@ -29,34 +29,41 @@
 /*************************************************************************/
 
 #include <cstddef>
+#include <iostream>
 #include "navigation_2d.h"
 #include "servers/collision_avoidance_server.h"
 #include "modules/orca/rvo_collision_avoidance_server.h"
 
 #define USE_ENTRY_POINT
 
-static void dungeons_and_dragging_hack_install_as_rvo_obstacles(PoolVector<Vector2>& vertices) {
+static void dungeons_and_dragging_hack_install_as_rvo_obstacles(World2D* world, PoolVector<Vector2>& vertices) {
 	if (vertices.size() < 2) {
 		return;
 	}
-	// get_active_spaces_hack
 	auto* singleton = (RvoCollisionAvoidanceServer*)CollisionAvoidanceServer::get_singleton();
-	auto& spaces = singleton->get_active_spaces_hack();
-	if (spaces.empty()) {
-		return;
-	}
-	auto& space = spaces[0];
+	auto* space = singleton->get_space(world->get_collision_avoidance_space());
 	space->add_obstacle(vertices);
 }
 
-void Navigation2D::dungeons_and_dragging_hack_install_as_rvo_obstacles() {
+static PoolVector<Vector2> to_vector(const std::vector<Vector2>& vec) {
+    PoolVector<Vector2> ret;
+    for (Vector2 v : vec) {
+        ret.push_back(v);
+    }
+    return ret;
+}
+
+void Navigation2D::dungeons_and_dragging_hack_install_as_rvo_obstacles(World2D* world2d) {
 	for (Map<int, NavMesh>::Element *E = navpoly_map.front(); E; E = E->next()) {
 	    PoolVector<Vector2> vertices = E->get().navpoly->get_vertices();
-        PoolVector<Vector2> transformed;
+        std::vector<Vector2> transformed;
 	    for (int i = 0; i < vertices.size(); i++) {
             transformed.push_back(E->get().xform.xform(vertices[i]));
 	    }
-        ::dungeons_and_dragging_hack_install_as_rvo_obstacles(transformed);
+        PoolVector<Vector2> t = E->get().navpoly->get_vertices();
+
+        auto vec = to_vector(transformed);
+        ::dungeons_and_dragging_hack_install_as_rvo_obstacles(world2d, vec);
 	}
 }
 

@@ -30,6 +30,7 @@
  * <http://gamma.cs.unc.edu/RVO2/>
  */
 
+#include <iostream>
 #include "Agent.h"
 
 #include "KdTree.h"
@@ -281,7 +282,6 @@ namespace RVO {
 				continue;
 			}
 		}
-
 		const size_t numObstLines = orcaLines_.size();
 
 		const float invTimeHorizon = 1.0f / timeHorizon_;
@@ -399,7 +399,6 @@ namespace RVO {
 				obstacleNeighbors_[i] = obstacleNeighbors_[i - 1];
 				--i;
 			}
-
 			obstacleNeighbors_[i] = std::make_pair(distSq, obstacle);
 		}
 	}

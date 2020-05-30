@@ -215,3 +215,9 @@ void RvoCollisionAvoidanceServer::step(real_t p_delta_time) {
         active_spaces[i]->dispatch_callbacks();
     }
 }
+
+void RvoCollisionAvoidanceServer::agent_set_user_data(RID p_agent, void *p_user_data) {
+    RvoAgent *agent = agent_owner.get(p_agent);
+    ERR_FAIL_COND(agent == NULL);
+    agent->get_agent()->userData = p_user_data;
+}

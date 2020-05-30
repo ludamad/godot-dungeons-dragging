@@ -83,13 +83,8 @@ namespace RVO {
 		 */
 		void insertObstacleNeighbor(const Obstacle *obstacle, float rangeSq);
 
-		/**
-		 * \brief      Updates the two-dimensional position and two-dimensional
-		 *             velocity of this agent.
-		 */
-		void update();
-
-                size_t userFlags; // DUNGEONS & DRAGGING: flags set by user
+		size_t userFlags; // DUNGEONS & DRAGGING: flags set by user
+		void* userData; // DUNGEONS & DRAGGING: arbitrary user data
 		std::vector<std::pair<float, const Agent *> > agentNeighbors_;
 		size_t maxNeighbors_;
 		float maxSpeed_;

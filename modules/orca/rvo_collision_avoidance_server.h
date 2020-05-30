@@ -51,11 +51,8 @@ public:
     virtual RID space_create();
     virtual void space_set_active(RID p_space, bool p_active);
     virtual bool space_is_active(RID p_space) const;
+    virtual void agent_set_user_data(RID p_agent, void* p_user_data);
 
-    virtual Vector<RvoSpace *>& get_active_spaces_hack() {
-        // Dungeons & dragging hack
-        return active_spaces;
-    }
     virtual RvoSpace* get_space(RID p_space) const;
     virtual RID agent_add(RID p_space);
     virtual void agent_set_neighbor_dist(RID p_agent, real_t p_dist);

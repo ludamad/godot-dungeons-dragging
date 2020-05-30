@@ -87,6 +87,7 @@ void CollisionAvoidanceController2D::_notification(int p_what) {
                 CollisionAvoidanceServer::get_singleton()->agent_set_radius(agent, radius);
                 CollisionAvoidanceServer::get_singleton()->agent_set_max_speed(agent, max_speed);
                 CollisionAvoidanceServer::get_singleton()->agent_set_user_flags(agent, user_flags);
+                CollisionAvoidanceServer::get_singleton()->agent_set_user_data(agent, this);
                 CollisionAvoidanceServer::get_singleton()->agent_set_callback(agent, this, "_avoidance_done");
                 set_physics_process_internal(true);
             }
@@ -192,15 +193,19 @@ void CollisionAvoidanceController2D::_avoidance_done(Vector2 p_new_velocity) {
     emit_signal("velocity_computed", p_new_velocity);
 }
 
-Vector2 CollisionAvoidanceController2D::get_nearest_neighbor(int flags) {
+CollisionAvoidanceController2D* CollisionAvoidanceController2D::get_nearest_neighbor(int flags, int range) {
     PhysicsBody2D *parent = Object::cast_to<PhysicsBody2D>(get_parent());
     if (!parent) {
-        return Vector2();
+        return NULL;
     }
     auto space_id = parent->get_world_2d()->get_collision_avoidance_space();
     RvoSpace *space = CollisionAvoidanceServer::get_singleton()->get_space(space_id);
     const Vector2 o = parent->get_global_transform().get_origin();
-    return space->find_nearest_matching_flag(o, flags);
+    RVO::Agent* agent = space->find_nearest_matching_flag(o, flags, range);
+    if (!agent) {
+        return NULL;
+    }
+    return (CollisionAvoidanceController2D*)agent->userData;
 }
 
 String CollisionAvoidanceController2D::get_configuration_warning() const {

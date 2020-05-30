@@ -854,9 +854,9 @@ void TileMap::_set_celld(const Vector2 &p_pos, const Dictionary &p_data) {
 	call("set_cell", args, 7, ce);
 }
 
-void TileMap::dungeons_and_dragging_hack_install_as_rvo_obstacles() {
+void TileMap::dungeons_and_dragging_hack_install_as_rvo_obstacles(Ref<World2D> world2d) {
 	if (navigation) {
-		navigation->dungeons_and_dragging_hack_install_as_rvo_obstacles();
+		navigation->dungeons_and_dragging_hack_install_as_rvo_obstacles(world2d.ptr());
 	}
 }
 

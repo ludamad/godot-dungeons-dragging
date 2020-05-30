@@ -30,6 +30,7 @@
  * <http://gamma.cs.unc.edu/RVO2/>
  */
 
+#include <iostream>
 #include "KdTree.h"
 
 #include "Agent.h"
@@ -46,6 +47,9 @@ namespace RVO {
 	void KdTree::buildAgentTree(std::vector<Agent *> agents) {
 		agents_.swap(agents);
 		if (!agents_.empty()) {
+			for (Agent* agent : agents) {
+				std::cout << "AGENT " << agent->id_ << " " << agent->position_.x() << ", " <<  agent->position_.y()  << std::endl;
+			}
 			agentTree_.resize(2 * agents_.size() - 1);
 			buildAgentTreeRecursive(0, agents_.size(), 0);
 		}
@@ -235,18 +239,18 @@ namespace RVO {
 		queryAgentTreeRecursive(agent, rangeSq, 0);
 	}
 
-	Agent* KdTree::nearestAgentMatchingFlag(Vector2 xy, int user_flags) const
+	Agent* KdTree::nearestAgentMatchingFlag(Vector2 xy, int user_flags, int range) const
 	{
 		Agent* nearestAgent = NULL;
-		float nearestDistSqr = std::numeric_limits<float>::max();
+		float nearestDistSqr = range * range;
 		_nearestAgentMatchingFlag(xy, user_flags, 0, &nearestAgent, &nearestDistSqr);
 		return nearestAgent;
 	}
 
 	void KdTree::_nearestAgentMatchingFlag(Vector2 xy, int user_flags, int node, Agent** nearestAgent, float* nearestDistSqr) const
 	{
-        printf("_nearestAgentMatchingFlag(Vector2 xy=(%.2f, %.2f), int user_flags=%d, int node=%d, float nearestDistSqr=%.2f)\n", xy.x(), xy.y(), user_flags, node, *nearestDistSqr);
-        printf("agentTree_.size()=%d\n", (int)agentTree_.size());
+//        printf("_nearestAgentMatchingFlag(Vector2 xy=(%.2f, %.2f), int user_flags=%d, int node=%d, float nearestDistSqr=%.2f)\n", xy.x(), xy.y(), user_flags, node, *nearestDistSqr);
+//        printf("agentTree_.size()=%d\n", (int)agentTree_.size());
 	    if (node < 0 || node >= agentTree_.size()) {
 	        return;
 	    }
@@ -254,13 +258,13 @@ namespace RVO {
 			// Base case of recursion:
 			// This subdivision is considered entirely
 			for (size_t i = agentTree_[node].begin; i < agentTree_[node].end; ++i) {
-				printf("agents_[i]->userFlags=%d, user_flags=%d\n", agents_[i]->userFlags, user_flags);
+//				printf("agents_[i]->userFlags=%d, user_flags=%d\n", agents_[i]->userFlags, user_flags);
 				if ((agents_[i]->userFlags & user_flags) == 0) {
 					continue; // skip this node
 				}
 				// consider this node
                 float distSqr = sqr(agents_[i]->position_.x() - xy.x()) + sqr(agents_[i]->position_.y() - xy.y());
-                if (distSqr < *nearestDistSqr) {
+                if (distSqr <= *nearestDistSqr) {
                     *nearestAgent = agents_[i];
                     *nearestDistSqr = distSqr;
                 }
@@ -353,6 +357,9 @@ namespace RVO {
 		else {
 			const Obstacle *const obstacle1 = node->obstacle;
 			const Obstacle *const obstacle2 = obstacle1->nextObstacle_;
+            if (fabs(agent->position_.x() - obstacle1->point_.x()) +   fabs(agent->position_.y() - obstacle1->point_.y()) < 5) {
+                printf("OBS %.2f %.2f \n", agent->position_.x() - obstacle1->point_.x(),  agent->position_.y() - obstacle1->point_.y());
+            }
 
 			const float agentLeftOfLine = leftOf(obstacle1->point_, obstacle2->point_, agent->position_);
 

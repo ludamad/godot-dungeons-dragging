@@ -98,7 +98,7 @@ public:
 
     void _avoidance_done(Vector2 p_new_velocity);
 
-    Vector2 get_nearest_neighbor(int flags);
+    CollisionAvoidanceController2D* get_nearest_neighbor(int flags, int range);
 
     virtual String get_configuration_warning() const;
 };

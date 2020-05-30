@@ -113,7 +113,8 @@ public:
      */
     virtual void agent_set_max_speed(RID p_agent, real_t p_max_speed) = 0;
 
-    virtual void agent_set_user_flags(RID p_agent, int userFlags) = 0;
+    virtual void agent_set_user_flags(RID p_agent, int p_user_flags) = 0;
+    virtual void agent_set_user_data(RID p_agent, void* p_user_data) = 0;
     /**
      * Current velocity of the agent
      */
