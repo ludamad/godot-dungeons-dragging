@@ -53,6 +53,8 @@ void CollisionAvoidanceController2D::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_radius"), &CollisionAvoidanceController2D::get_radius);
 
     ClassDB::bind_method(D_METHOD("set_user_flags", "user_flags"), &CollisionAvoidanceController2D::set_user_flags);
+    ClassDB::bind_method(D_METHOD("get_user_flags"), &CollisionAvoidanceController2D::get_user_flags);
+
     ClassDB::bind_method(D_METHOD("set_max_speed", "max_speed"), &CollisionAvoidanceController2D::set_max_speed);
     ClassDB::bind_method(D_METHOD("get_max_speed"), &CollisionAvoidanceController2D::get_max_speed);
 

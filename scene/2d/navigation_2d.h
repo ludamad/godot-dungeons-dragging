@@ -31,6 +31,7 @@
 #ifndef NAVIGATION_2D_H
 #define NAVIGATION_2D_H
 
+#include <vector>
 #include "scene/2d/navigation_polygon.h"
 #include "scene/2d/node_2d.h"
 
@@ -164,7 +165,7 @@ public:
 	void navpoly_set_transform(int p_id, const Transform2D &p_xform);
 	void navpoly_remove(int p_id);
 	void dungeons_and_dragging_hack_install_as_rvo_obstacles(World2D* world2d);
-
+	void dungeons_and_dragging_hack_install_temporary_obstacles(World2D* world2d, const Vector<Vector2>& vec);
 
 	Vector<Vector2> get_simple_path(const Vector2 &p_start, const Vector2 &p_end, bool p_optimize = true);
 	Vector2 get_closest_point(const Vector2 &p_point);

@@ -36,7 +36,7 @@
 
 #define USE_ENTRY_POINT
 
-static void dungeons_and_dragging_hack_install_as_rvo_obstacles(World2D* world, PoolVector<Vector2>& vertices) {
+void dungeons_and_dragging_hack_install_as_rvo_obstacles(World2D* world, PoolVector<Vector2>& vertices) {
 	if (vertices.size() < 2) {
 		return;
 	}
@@ -53,6 +53,21 @@ static PoolVector<Vector2> to_vector(const std::vector<Vector2>& vec) {
     return ret;
 }
 
+PoolVector<Vector2> to_vector(const Vector<Vector2>& vec) {
+	PoolVector<Vector2> ret;
+	for (int i = 0; i < vec.size(); i++) {
+		ret.push_back(vec[i]);
+	}
+	return ret;
+}
+
+void dungeons_and_dragging_hack_install_temporary(World2D* world, PoolVector<Vector2>& vertices, bool is_dirty) {
+	auto* singleton = (RvoCollisionAvoidanceServer*)CollisionAvoidanceServer::get_singleton();
+	auto* space = singleton->get_space(world->get_collision_avoidance_space());
+	space->add_temporary_obstacle(vertices, is_dirty);
+}
+
+
 void Navigation2D::dungeons_and_dragging_hack_install_as_rvo_obstacles(World2D* world2d) {
 	for (Map<int, NavMesh>::Element *E = navpoly_map.front(); E; E = E->next()) {
 	    PoolVector<Vector2> vertices = E->get().navpoly->get_vertices();
@@ -65,6 +80,13 @@ void Navigation2D::dungeons_and_dragging_hack_install_as_rvo_obstacles(World2D* 
         auto vec = to_vector(transformed);
         ::dungeons_and_dragging_hack_install_as_rvo_obstacles(world2d, vec);
 	}
+}
+
+void Navigation2D::dungeons_and_dragging_hack_install_temporary_obstacles(World2D* world2d, const Vector<Vector2>& vec) {
+	auto* singleton = (RvoCollisionAvoidanceServer*)CollisionAvoidanceServer::get_singleton();
+	auto* space = singleton->get_space(world2d->get_collision_avoidance_space());
+	auto pools = to_vector(vec);
+	space->add_temporary_obstacle(pools);
 }
 
 void Navigation2D::_navpoly_link(int p_id) {

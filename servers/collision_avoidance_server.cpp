@@ -39,7 +39,6 @@ void CollisionAvoidanceServer::_bind_methods() {
     ClassDB::bind_method(D_METHOD("space_is_active"), &CollisionAvoidanceServer::space_is_active);
 
     ClassDB::bind_method(D_METHOD("agent_add", "space"), &CollisionAvoidanceServer::agent_add);
-    ClassDB::bind_method(D_METHOD("agent_add", "space"), &CollisionAvoidanceServer::agent_add);
     ClassDB::bind_method(D_METHOD("agent_set_neighbor_dist", "agent", "dist"), &CollisionAvoidanceServer::agent_set_neighbor_dist);
     ClassDB::bind_method(D_METHOD("agent_set_user_flags", "agent", "flags"), &CollisionAvoidanceServer::agent_set_user_flags);
     ClassDB::bind_method(D_METHOD("agent_set_max_neighbors", "agent", "count"), &CollisionAvoidanceServer::agent_set_max_neighbors);

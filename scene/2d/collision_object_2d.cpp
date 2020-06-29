@@ -192,11 +192,11 @@ float CollisionObject2D::get_shape_owner_one_way_collision_margin(uint32_t p_own
 	return shapes[p_owner].one_way_collision_margin;
 }
 
-void CollisionObject2D::get_shape_owners(List<uint32_t> *r_owners) {
 
-	for (Map<uint32_t, ShapeData>::Element *E = shapes.front(); E; E = E->next()) {
-		r_owners->push_back(E->key());
-	}
+void CollisionObject2D::get_shape_owners(List<uint32_t> *r_owners) {
+    for (Map<uint32_t, ShapeData>::Element *E = shapes.front(); E; E = E->next()) {
+        r_owners->push_back(E->key());
+    }
 }
 
 Array CollisionObject2D::_get_shape_owners() {

@@ -146,6 +146,30 @@ void CollisionShape2D::_notification(int p_what) {
 	}
 }
 
+void dungeons_and_dragging_hack_install_as_rvo_obstacles(World2D* world, PoolVector<Vector2>& vertices);
+void dungeons_and_dragging_hack_install_temporary(World2D* world, PoolVector<Vector2>& vertices, bool is_dirty);
+PoolVector<Vector2> to_vector(const Vector<Vector2>& vec);
+
+//#include <iostream>
+void CollisionShape2D::dungeons_and_dragging_rvo_install(bool is_dirty) {
+	if (!parent) {
+		return;
+	}
+	Rect2 rect = shape->get_rect();
+	Transform2D transform2D = get_transform();
+    Point2 top_left = rect.position;
+    Point2 bottom_right = rect.position + rect.size;
+
+    Vector<Vector2> pts;
+    pts.push_back(parent->get_global_position() + transform2D.xform(bottom_right));
+    pts.push_back(parent->get_global_position() + transform2D.xform(Vector2(top_left.x, bottom_right.y)));
+    pts.push_back(parent->get_global_position() + transform2D.xform(top_left));
+    pts.push_back(parent->get_global_position() + transform2D.xform(Vector2(bottom_right.x, top_left.y)));
+    // std::cout << "R2: " << transform2D.xform(bottom_right).x << ", " << transform2D.xform(bottom_right).y << "| " << std::endl;
+    PoolVector<Vector2> vec = to_vector(pts);
+    dungeons_and_dragging_hack_install_temporary(get_world_2d().ptr(), vec, is_dirty);
+}
+
 void CollisionShape2D::set_shape(const Ref<Shape2D> &p_shape) {
 
 	if (shape.is_valid())
@@ -231,6 +255,7 @@ void CollisionShape2D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_shape", "shape"), &CollisionShape2D::set_shape);
 	ClassDB::bind_method(D_METHOD("get_shape"), &CollisionShape2D::get_shape);
+	ClassDB::bind_method(D_METHOD("dungeons_and_dragging_rvo_install"), &CollisionShape2D::dungeons_and_dragging_rvo_install);
 	ClassDB::bind_method(D_METHOD("set_disabled", "disabled"), &CollisionShape2D::set_disabled);
 	ClassDB::bind_method(D_METHOD("is_disabled"), &CollisionShape2D::is_disabled);
 	ClassDB::bind_method(D_METHOD("set_one_way_collision", "enabled"), &CollisionShape2D::set_one_way_collision);

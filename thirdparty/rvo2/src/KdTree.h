@@ -195,7 +195,31 @@ namespace RVO {
 		ObstacleTreeNode *obstacleTree_;
 
 		static const size_t MAX_LEAF_SIZE = 10;
-	};
+
+		struct KdQuery {
+			Agent* origin = nullptr;
+			Vector2 position;
+			std::vector<std::pair<float, Agent*>> results;
+			int flags = 0;
+			float range_sqr = 0;
+			int n_max_results = 1;
+			KdQuery(Vector2 pos, int flags, float range, int n_max_results) {
+				this->position = pos;
+				this->flags = flags;
+				this->range_sqr = range * range;
+				this->n_max_results = n_max_results;	
+			}
+			float x() {
+				return position.x();
+			}
+			float y() {
+				return position.y();
+			}
+			void insert_result(Agent* agent, float dist_sqr);
+		};
+
+        void queryAgents(KdQuery& query, size_t node = 0);
+    };
 }
 
 #endif /* RVO_KD_TREE_H_ */

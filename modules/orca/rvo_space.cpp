@@ -45,7 +45,7 @@ RVO::Vector2 to_rvo(Vector2 vec) {
     return RVO::Vector2(vec.x, vec.y);
 }
 
-void RvoSpace::add_obstacle(PoolVector<Vector2>& vertices) {
+void RvoSpace::add_obstacle(PoolVector<Vector2>& vertices, bool permanent) {
     const size_t obstacleNo = obstacles.size();
 
     for (size_t i = 0; i < vertices.size(); ++i) {
@@ -76,12 +76,18 @@ void RvoSpace::add_obstacle(PoolVector<Vector2>& vertices) {
         obstacles.push_back(obstacle);
     }
 
-
-    std::cout << "ADDED OBSTACLE " << obstacleNo << std::endl;
-    for (size_t i = obstacleNo; i < obstacles.size(); ++i) {
-        std::cout << "ADDED OBSTACLE (" << i << ") AT " << obstacles[i]->point_ << std::endl;
+    if (permanent) {
+        obstacles_dirty = true;
+        n_permanent_obstacles = int(obstacles.size());
     }
-    obstacles_dirty = true;
+}
+
+void RvoSpace::add_temporary_obstacle(PoolVector<Vector2>& vertices, bool is_dirty) {
+    temporary_obstacles.push_back(vertices);
+    // add_obstacle(vertices, false);
+    if (is_dirty) {
+        obstacles_dirty = true;
+    }
 }
 
 void RvoSpace::remove_obstacle(RVO::Obstacle *obstacle) {
@@ -128,10 +134,26 @@ void RvoSpace::remove_agent_as_controlled(RvoAgent *agent) {
 }
 
 void RvoSpace::sync() {
+    if (last_n_obstacles != obstacles.size() + temporary_obstacles.size()) {
+        obstacles_dirty = true;
+    }
     if (obstacles_dirty) {
+        // DUNGEONS AND DRAGGING HACK
+        for (int i = n_permanent_obstacles; i < obstacles.size(); i++) {
+            delete obstacles[i];
+            obstacles[i] = nullptr;
+        }
+        obstacles.resize(n_permanent_obstacles);
+        for (auto& vec : temporary_obstacles) {
+            add_obstacle(vec, false);
+        }
         rvo.buildObstacleTree(obstacles);
+        last_n_obstacles = obstacles.size() + temporary_obstacles.size();
         obstacles_dirty = false;
     }
+    // Purpose is filled at this point of temporary obstacles
+    // Clear for next round
+    temporary_obstacles.clear();
 
     //if (agents_dirty) {
     std::vector<RVO::Agent *> raw_agents;
@@ -170,4 +192,8 @@ void RvoSpace::dispatch_callbacks() {
 
 RVO::Agent* RvoSpace::find_nearest_matching_flag(Vector2 xy, int flags, int range) {
     return rvo.nearestAgentMatchingFlag(to_rvo(xy), flags, range);
+}
+
+void RvoSpace::find(RVO::KdTree::KdQuery &query) {
+    rvo.queryAgents(query);
 }

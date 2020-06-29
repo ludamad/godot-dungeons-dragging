@@ -37,6 +37,10 @@
 #include "servers/physics_2d_server.h"
 #include "servers/visual_server.h"
 
+#include "modules/orca/rvo_space.h"
+#include "modules/orca/rvo_agent.h"
+#include "scene/2d/collision_avoidance_controller_2d.h"
+
 struct SpatialIndexer2D {
 
 	struct CellRef {
@@ -371,10 +375,26 @@ void World2D::get_viewport_list(List<Viewport *> *r_viewports) {
 	}
 }
 
+
+RVO::Vector2 to_rvo(Vector2 vec);
+
+Array World2D::query_agents(Vector2 o, int flags, float range, int n_max_results) {
+	auto space_id = get_collision_avoidance_space();
+	RvoSpace *space = CollisionAvoidanceServer::get_singleton()->get_space(space_id);
+	RVO::KdTree::KdQuery query(to_rvo(o), flags, range, n_max_results);
+	space->find(query);
+	Array ret;
+	for (auto& result : query.results) {
+		ret.push_back((CollisionAvoidanceController2D*)result.second->userData);
+	}
+	return ret;
+}
+
 void World2D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_canvas"), &World2D::get_canvas);
 	ClassDB::bind_method(D_METHOD("get_space"), &World2D::get_space);
+	ClassDB::bind_method(D_METHOD("query_agents"), &World2D::query_agents);
 
 	ClassDB::bind_method(D_METHOD("get_direct_space_state"), &World2D::get_direct_space_state);
 

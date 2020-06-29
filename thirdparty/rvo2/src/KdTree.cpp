@@ -47,9 +47,6 @@ namespace RVO {
 	void KdTree::buildAgentTree(std::vector<Agent *> agents) {
 		agents_.swap(agents);
 		if (!agents_.empty()) {
-			for (Agent* agent : agents) {
-				std::cout << "AGENT " << agent->id_ << " " << agent->position_.x() << ", " <<  agent->position_.y()  << std::endl;
-			}
 			agentTree_.resize(2 * agents_.size() - 1);
 			buildAgentTreeRecursive(0, agents_.size(), 0);
 		}
@@ -417,6 +414,81 @@ namespace RVO {
 				const float invLengthQ = 1.0f / absSq(q2 - q1);
 
 				return (point1LeftOfQ * point2LeftOfQ >= 0.0f && sqr(point1LeftOfQ) * invLengthQ > sqr(radius) && sqr(point2LeftOfQ) * invLengthQ > sqr(radius) && queryVisibilityRecursive(q1, q2, radius, node->left) && queryVisibilityRecursive(q1, q2, radius, node->right));
+			}
+		}
+	}
+
+	void KdTree::queryAgents(KdTree::KdQuery& query, size_t node) {
+		if (query.n_max_results <= query.results.size()) {
+			return;
+		}
+		if (node < 0 || node >= agentTree_.size()) {
+			return;
+		}
+		if (agentTree_[node].end - agentTree_[node].begin <= MAX_LEAF_SIZE) {
+			// Base case of recursion:
+			// This subdivision is considered entirely
+			for (size_t i = agentTree_[node].begin; i < agentTree_[node].end; ++i) {
+				if ((agents_[i]->userFlags & query.flags) == 0) {
+					continue; // skip this node
+				}
+				// consider this node
+				float distSqr = sqr(agents_[i]->position_.x() - query.x()) + sqr(agents_[i]->position_.y() - query.y());
+				if (distSqr <= query.range_sqr) {
+					query.insert_result(agents_[i], distSqr);
+				}
+			}
+		} else {
+			const float distSqLeft =
+					sqr(std::max(0.0f, agentTree_[agentTree_[node].left].minX - query.x()))
+					+ sqr(std::max(0.0f, query.x() - agentTree_[agentTree_[node].left].maxX))
+					+ sqr(std::max(0.0f, agentTree_[agentTree_[node].left].minY - query.y()))
+					+ sqr(std::max(0.0f, query.y() - agentTree_[agentTree_[node].left].maxY));
+			const float distSqRight = sqr(std::max(0.0f, agentTree_[agentTree_[node].right].minX - query.x()))
+									  + sqr(std::max(0.0f, query.x() - agentTree_[agentTree_[node].right].maxX))
+									  + sqr(std::max(0.0f, agentTree_[agentTree_[node].right].minY - query.y()))
+									  + sqr(std::max(0.0f, query.y() - agentTree_[agentTree_[node].right].maxY));
+
+			if (distSqLeft < distSqRight) {
+				if (distSqLeft < query.range_sqr) {
+					queryAgents(query, agentTree_[node].left);
+
+					if (distSqRight < query.range_sqr) {
+						queryAgents(query, agentTree_[node].right);
+					}
+				}
+			} else {
+				if (distSqRight < query.range_sqr) {
+					queryAgents(query, agentTree_[node].right);
+
+					if (distSqLeft < query.range_sqr) {
+						queryAgents(query, agentTree_[node].left);
+					}
+				}
+			}
+		}
+	}
+
+	void KdTree::KdQuery::insert_result(Agent *agent, float dist_sqr) {
+		if (agent == origin) {
+			return;
+		}
+		if (dist_sqr < range_sqr) {
+			if (results.size() < n_max_results) {
+				results.push_back(std::make_pair(dist_sqr, agent));
+			}
+
+			size_t i = results.size() - 1;
+
+			while (i != 0 && dist_sqr < results[i - 1].first) {
+				results[i] = results[i - 1];
+				--i;
+			}
+
+			results[i] = std::make_pair(dist_sqr, agent);
+
+			if (results.size() == n_max_results) {
+				range_sqr = results.back().first;
 			}
 		}
 	}

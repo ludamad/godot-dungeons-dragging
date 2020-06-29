@@ -361,7 +361,8 @@ public:
 	RID get_viewport_rid() const;
 	RID get_canvas() const;
 	ObjectID get_canvas_layer_instance_id() const;
-	Ref<World2D> get_world_2d() const;
+
+    virtual Ref<World2D> get_world_2d() const;
 
 	virtual void set_material(const Ref<Material> &p_material);
 	Ref<Material> get_material() const;

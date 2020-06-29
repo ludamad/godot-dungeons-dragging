@@ -39,6 +39,7 @@
 class VisibilityNotifier2D;
 class Viewport;
 struct SpatialIndexer2D;
+class CollisionAvoidanceController2D;
 
 class World2D : public Resource {
 
@@ -62,6 +63,7 @@ protected:
 	void _register_notifier(VisibilityNotifier2D *p_notifier, const Rect2 &p_rect);
 	void _update_notifier(VisibilityNotifier2D *p_notifier, const Rect2 &p_rect);
 	void _remove_notifier(VisibilityNotifier2D *p_notifier);
+	Array query_agents(Vector2 o, int flags, float range, int n_max_results);
 
 	void _update();
 

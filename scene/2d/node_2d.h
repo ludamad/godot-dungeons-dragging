@@ -123,6 +123,8 @@ public:
 	Transform2D get_transform() const;
 
 	Node2D();
+
+    Ref<World2D> get_world_2d() const override;
 };
 
 #endif // NODE2D_H

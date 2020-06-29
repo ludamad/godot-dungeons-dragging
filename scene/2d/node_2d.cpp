@@ -424,6 +424,10 @@ Point2 Node2D::to_global(Point2 p_local) const {
 	return get_global_transform().xform(p_local);
 }
 
+Ref<World2D> Node2D::get_world_2d() const {
+	return CanvasItem::get_world_2d();
+}
+
 void Node2D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_position", "position"), &Node2D::set_position);
