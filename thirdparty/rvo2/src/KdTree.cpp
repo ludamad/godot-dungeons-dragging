@@ -354,9 +354,9 @@ namespace RVO {
 		else {
 			const Obstacle *const obstacle1 = node->obstacle;
 			const Obstacle *const obstacle2 = obstacle1->nextObstacle_;
-            if (fabs(agent->position_.x() - obstacle1->point_.x()) +   fabs(agent->position_.y() - obstacle1->point_.y()) < 5) {
-                printf("OBS %.2f %.2f \n", agent->position_.x() - obstacle1->point_.x(),  agent->position_.y() - obstacle1->point_.y());
-            }
+  //          if (fabs(agent->position_.x() - obstacle1->point_.x()) +   fabs(agent->position_.y() - obstacle1->point_.y()) < 5) {
+//                printf("OBS %.2f %.2f \n", agent->position_.x() - obstacle1->point_.x(),  agent->position_.y() - obstacle1->point_.y());
+    //        }
 
 			const float agentLeftOfLine = leftOf(obstacle1->point_, obstacle2->point_, agent->position_);
 
