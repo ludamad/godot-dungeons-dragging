@@ -327,61 +327,88 @@ void TileMap::_add_shape(int &shape_idx, const Quadrant &p_q, const Ref<Shape2D>
 
 void dungeons_and_dragging_hack_install_as_rvo_obstacles(World2D* world, PoolVector<Vector2>& vertices);
 
-void TileMap::dungeons_and_dragging_hack_install_as_rvo_obstacles(Ref<World2D> world2d) {
-    Vector2 tofs = get_cell_draw_offset();
-	for (Map<PosKey, Quadrant>::Element *Q = quadrant_map.front(); Q; Q = Q->next()) {
-		for (int i = 0; i < Q->get().cells.size(); i++) {
-            Map<PosKey, Cell>::Element* E = tile_map.find(Q->get().cells[i]);
-            Cell &c = E->get();
-            //moment of truth
-            if (!tile_set->has_tile(c.id))
-                continue;
-            Ref<Texture> tex = tile_set->tile_get_texture(c.id);
+void TileMap::dungeons_and_dragging_hack_install_as_rvo_obstacles(Ref<World2D> world2d, const Array& rects) {
+    for (int i = 0; i < rects.size(); i++) {
+        Rect2 rect = rects[i];
+        Map<PosKey, Cell>::Element *element = tile_map.find(PosKey(static_cast<int16_t>(rect.position.x),
+                                                                   static_cast<int16_t>(rect.position.y)));
+        if (!element) {
+            continue;
+        }
 
-            Vector2 wofs = _map_to_world(E->key().x, E->key().y);
-            Vector2 offset = wofs - Q->get().pos + tofs;
+        Cell &cell = element->get();
 
-            Rect2 r = tile_set->tile_get_region(c.id);
+        if (!tile_set->has_tile(cell.id)) {
+            continue;
+        }
 
-            Size2 s;
-            if (r == Rect2())
-                s = tex->get_size();
-            else
-                s = r.size;
+        Vector2 offset = _map_to_world(
+                static_cast<int>(rect.position.x),
+                static_cast<int>(rect.position.y)) + get_cell_draw_offset();
+        Vector<TileSet::ShapeData> shapes = tile_set->tile_get_shapes(cell.id);
+        for (int j = 0; j < shapes.size(); j++) {
+            Ref<Shape2D> shape = shapes[j].shape;
+            if (shape.is_valid()) {
+                auto r = shape->get_rect();
+                r.size *= rect.size;
+                Point2 top_left = offset + r.position;
+                Point2 bottom_right = offset + r.position + r.size;
 
-			Vector<TileSet::ShapeData> shapes = tile_set->tile_get_shapes(c.id);
-
-            for (int j = 0; j < shapes.size(); j++) {
-                Ref<Shape2D> shape = shapes[j].shape;
-                if (shape.is_valid()) {
-                    if (tile_set->tile_get_tile_mode(c.id) == TileSet::SINGLE_TILE) {
-//						Transform2D xform;
-//						xform.set_origin(offset.floor() + Q->get().pos);
-
-//						Vector2 shape_ofs = shapes[j].shape_transform.get_origin();
-						Vector2 pos = wofs + tofs; //offset.floor() + Q->get().pos + shape_ofs;
-
-//						_fix_cell_transform(xform, c, shape_ofs, s);
-
-//						xform *=
-//                        pos += shapes[j].shape_transform.untranslated().get_origin();
-
-                        auto r = shape->get_rect();
-                        Point2 top_left = pos + r.position;
-                        Point2 bottom_right = pos + r.position + r.size;
-
-                        PoolVector<Vector2> vertices;
-                        vertices.push_back(bottom_right);
-                        vertices.push_back(Vector2(top_left.x, bottom_right.y));
-                        vertices.push_back(top_left);
-                        vertices.push_back(Vector2(bottom_right.x, top_left.y));
-                        ::dungeons_and_dragging_hack_install_as_rvo_obstacles(world2d.ptr(), vertices);
-
-                    }
-                }
+                PoolVector<Vector2> vertices;
+                vertices.push_back(bottom_right);
+                vertices.push_back(Vector2(top_left.x, bottom_right.y));
+                vertices.push_back(top_left);
+                vertices.push_back(Vector2(bottom_right.x, top_left.y));
+                ::dungeons_and_dragging_hack_install_as_rvo_obstacles(world2d.ptr(), vertices);
             }
-		}
-	}
+        }
+    }
+
+//        Vector2 pos = wofs + tofs;
+//    	Rect2i r(Vector2i(), rect.size * cell_size);
+//		Point2 top_left = pos + r.position;
+//		Point2 bottom_right = pos + r.position + r.size;
+//
+//		PoolVector<Vector2> vertices;
+//		vertices.push_back(bottom_right);
+//		vertices.push_back(Vector2(top_left.x, bottom_right.y));
+//		vertices.push_back(top_left);
+//		vertices.push_back(Vector2(bottom_right.x, top_left.y));
+//		::dungeons_and_dragging_hack_install_as_rvo_obstacles(world2d.ptr(), vertices);
+//        Vector<TileSet::ShapeData> shapes = tile_set->tile_get_shapes(cell.id);
+//
+//	}
+//	for (Map<PosKey, Quadrant>::Element *Q = quadrant_map.front(); Q; Q = Q->next()) {
+//		for (int i = 0; i < Q->get().cells.size(); i++) {
+//            Map<PosKey, Cell>::Element* E = tile_map.find(Q->get().cells[i]);
+//            Cell &c = E->get();
+//            if (!tile_set->has_tile(c.id))
+//                continue;
+//
+//            Vector2 wofs = _map_to_world(E->key().x, E->key().y);
+//			Vector<TileSet::ShapeData> shapes = tile_set->tile_get_shapes(c.id);
+//
+//            for (int j = 0; j < shapes.size(); j++) {
+//                Ref<Shape2D> shape = shapes[j].shape;
+//                if (shape.is_valid()) {
+//                    if (tile_set->tile_get_tile_mode(c.id) == TileSet::SINGLE_TILE) {
+//						Vector2 pos = wofs + tofs;
+//                        auto r = shape->get_rect();
+//                        Point2 top_left = pos + r.position;
+//                        Point2 bottom_right = pos + r.position + r.size;
+//
+//                        PoolVector<Vector2> vertices;
+//                        vertices.push_back(bottom_right);
+//                        vertices.push_back(Vector2(top_left.x, bottom_right.y));
+//                        vertices.push_back(top_left);
+//                        vertices.push_back(Vector2(bottom_right.x, top_left.y));
+//                        ::dungeons_and_dragging_hack_install_as_rvo_obstacles(world2d.ptr(), vertices);
+//
+//                    }
+//                }
+//            }
+//		}
+//	}
 }
 
 void TileMap::update_dirty_quadrants() {

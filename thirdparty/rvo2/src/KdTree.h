@@ -136,6 +136,7 @@ namespace RVO {
 		 * \brief      Builds an obstacle <i>k</i>d-tree.
 		 */
 		void buildObstacleTree(std::vector<Obstacle *> obstacles);
+		void buildTemporaryObstacleTree(std::vector<Obstacle *> obstacles);
 
 		ObstacleTreeNode *buildObstacleTreeRecursive(const std::vector<Obstacle *> &obstacles, std::vector<Obstacle *> root);
 
@@ -193,6 +194,7 @@ namespace RVO {
 		std::vector<Agent *> agents_;
 		std::vector<AgentTreeNode> agentTree_;
 		ObstacleTreeNode *obstacleTree_;
+		ObstacleTreeNode *temporaryObstacleTree_;
 
 		static const size_t MAX_LEAF_SIZE = 10;
 

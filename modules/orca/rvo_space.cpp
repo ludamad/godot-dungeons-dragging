@@ -28,6 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
+#include <algorithm>
 #include "rvo_space.h"
 
 #include "core/os/threaded_array_processor.h"
@@ -45,7 +46,7 @@ RVO::Vector2 to_rvo(Vector2 vec) {
     return RVO::Vector2(vec.x, vec.y);
 }
 
-void RvoSpace::add_obstacle(PoolVector<Vector2>& vertices, bool permanent) {
+void RvoSpace::add_obstacle(PoolVector<Vector2>& vertices) {
     const size_t obstacleNo = obstacles.size();
 
     for (size_t i = 0; i < vertices.size(); ++i) {
@@ -76,17 +77,42 @@ void RvoSpace::add_obstacle(PoolVector<Vector2>& vertices, bool permanent) {
         obstacles.push_back(obstacle);
     }
 
-    if (permanent) {
-        obstacles_dirty = true;
-        n_permanent_obstacles = int(obstacles.size());
-    }
+    obstacles_dirty = true;
 }
 
 void RvoSpace::add_temporary_obstacle(PoolVector<Vector2>& vertices, bool is_dirty) {
-    temporary_obstacles.push_back(vertices);
-    // add_obstacle(vertices, false);
+    const size_t obstacleNo = obstacles.size();
+
+    for (size_t i = 0; i < vertices.size(); ++i) {
+        RVO::Obstacle *obstacle = new RVO::Obstacle();
+        obstacle->point_ = to_rvo(vertices[i]);
+
+        if (i != 0) {
+            obstacle->prevObstacle_ = obstacles.back();
+            obstacle->prevObstacle_->nextObstacle_ = obstacle;
+        }
+
+        if (i == vertices.size() - 1) {
+            obstacle->nextObstacle_ = obstacles[obstacleNo];
+            obstacle->nextObstacle_->prevObstacle_ = obstacle;
+        }
+
+        obstacle->unitDir_ = RVO::normalize(to_rvo(vertices[(i == vertices.size() - 1 ? 0 : i + 1)] - vertices[i]));
+
+        if (vertices.size() == 2) {
+            obstacle->isConvex_ = true;
+        }
+        else {
+            obstacle->isConvex_ = (RVO::leftOf(to_rvo(vertices[(i == 0 ? vertices.size() - 1 : i - 1)]), to_rvo(vertices[i]), to_rvo(vertices[(i == vertices.size() - 1 ? 0 : i + 1)])) >= 0.0f);
+        }
+
+        obstacle->id_ = obstacles.size();
+
+        obstacles.push_back(obstacle);
+    }
+
     if (is_dirty) {
-        obstacles_dirty = true;
+        temporary_obstacles_dirty = true;
     }
 }
 
@@ -105,7 +131,6 @@ bool RvoSpace::has_agent(RvoAgent *agent) const {
 void RvoSpace::add_agent(RvoAgent *agent) {
     if (!has_agent(agent)) {
         agents.push_back(agent);
-        agents_dirty = true;
     }
 }
 
@@ -114,7 +139,6 @@ void RvoSpace::remove_agent(RvoAgent *agent) {
     auto it = std::find(agents.begin(), agents.end(), agent);
     if (it != agents.end()) {
         agents.erase(it);
-        agents_dirty = true;
     }
 }
 
@@ -134,35 +158,29 @@ void RvoSpace::remove_agent_as_controlled(RvoAgent *agent) {
 }
 
 void RvoSpace::sync() {
-    if (last_n_obstacles != obstacles.size() + temporary_obstacles.size()) {
-        obstacles_dirty = true;
+    if (temporary_obstacles_dirty || temporary_obstacles.size() != temporary_obstacles_last.size()) {
+        rvo.buildTemporaryObstacleTree(temporary_obstacles);
+        // We need to hold on to these obstacles we allocated for RVO
+        // Instead, we make the previously held array queued to be freed
+        temporary_obstacles.swap(temporary_obstacles_last);
+        temporary_obstacles_dirty = false;
     }
     if (obstacles_dirty) {
-        // DUNGEONS AND DRAGGING HACK
-        for (int i = n_permanent_obstacles; i < obstacles.size(); i++) {
-            delete obstacles[i];
-            obstacles[i] = nullptr;
-        }
-        obstacles.resize(n_permanent_obstacles);
-        for (auto& vec : temporary_obstacles) {
-            add_obstacle(vec, false);
-        }
         rvo.buildObstacleTree(obstacles);
-        last_n_obstacles = obstacles.size() + temporary_obstacles.size();
         obstacles_dirty = false;
     }
     // Purpose is filled at this point of temporary obstacles
     // Clear for next round
+    for (auto* obs : temporary_obstacles) {
+        delete obs;
+    }
     temporary_obstacles.clear();
 
-    //if (agents_dirty) {
     std::vector<RVO::Agent *> raw_agents;
     raw_agents.reserve(agents.size());
     for (int i(0); i < agents.size(); i++)
         raw_agents.push_back(agents[i]->get_agent());
     rvo.buildAgentTree(raw_agents);
-    //agents_dirty = false;
-    //}
 }
 
 void RvoSpace::compute_single_step(uint32_t _index, RvoAgent **agent) {

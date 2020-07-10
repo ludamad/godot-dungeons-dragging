@@ -48,14 +48,12 @@ class RvoSpace : public RvoRid {
 
     /// Is the obstacles array modified?
     bool obstacles_dirty;
+    /// Do the temporary obstacles differ?
+    bool temporary_obstacles_dirty;
     /// Obstacles
     std::vector<RVO::Obstacle *> obstacles;
-    std::vector<PoolVector<Vector2>> temporary_obstacles;
-    int n_permanent_obstacles = 0;
-    int last_n_obstacles = 0;
-
-    /// Is agent array modified?
-    bool agents_dirty;
+    std::vector<RVO::Obstacle *> temporary_obstacles;
+    std::vector<RVO::Obstacle *> temporary_obstacles_last;
 
     /// All the Agents (even the controlled one)
     std::vector<RvoAgent *> agents;
@@ -70,7 +68,7 @@ public:
     RvoSpace();
 
     bool has_obstacle(RVO::Obstacle *obstacle) const;
-    void add_obstacle(PoolVector<Vector2>& vertices, bool permanent = true);
+    void add_obstacle(PoolVector<Vector2>& vertices);
     void add_temporary_obstacle(PoolVector<Vector2>& vertices, bool is_dirty = true);
     void remove_obstacle(RVO::Obstacle *obstacle);
 

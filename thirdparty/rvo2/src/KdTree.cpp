@@ -110,6 +110,12 @@ namespace RVO {
 		obstacleTree_ = buildObstacleTreeRecursive(obstacles, obstacles);
 	}
 
+	void KdTree::buildTemporaryObstacleTree(std::vector<Obstacle *> obstacles)
+	{
+		deleteObstacleTree(temporaryObstacleTree_);
+
+		temporaryObstacleTree_ = buildObstacleTreeRecursive(obstacles, obstacles);
+	}
 
 	KdTree::ObstacleTreeNode *KdTree::buildObstacleTreeRecursive(const std::vector<Obstacle *> &obstacles, std::vector<Obstacle *> root)
 	{
@@ -301,6 +307,7 @@ namespace RVO {
 	void KdTree::computeObstacleNeighbors(Agent *agent, float rangeSq) const
 	{
 		queryObstacleTreeRecursive(agent, rangeSq, obstacleTree_);
+		queryObstacleTreeRecursive(agent, rangeSq, temporaryObstacleTree_);
 	}
 
 	void KdTree::deleteObstacleTree(ObstacleTreeNode *node)
